@@ -2,9 +2,11 @@
 
 Design guidance for MCP servers that need to work well when driven by agents.
 
-Use it to shape tool surfaces around user intent, choose transport and auth
-boundaries, account for client behavior, design feedback loops, and audit
-servers before they become hard to change.
+This is not a codebase-architecture or SDK scaffolding guide. Use the standard
+MCP libraries for protocol mechanics; use this skill to shape the server's
+agent-facing surface: tools around user intent, transport and auth boundaries,
+client behavior, feedback loops, and audits before the surface becomes hard to
+change.
 
 ## Use
 
