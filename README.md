@@ -6,19 +6,9 @@ Use it to shape tool surfaces around user intent, choose transport and auth
 boundaries, account for client behavior, design feedback loops, and audit
 servers before they become hard to change.
 
-## Install
+## Use
 
-```bash
-mkdir -p ~/.agents/skills
-rsync -a --delete ./ ~/.agents/skills/mcp-server-design/
-```
-
-For a remote host:
-
-```bash
-ssh hetz 'mkdir -p /home/j2h4u/.agents/skills/mcp-server-design'
-rsync -a --delete ./ hetz:/home/j2h4u/.agents/skills/mcp-server-design/
-```
+Place this directory wherever your agent runtime loads skills from.
 
 ## Contents
 
