@@ -190,7 +190,11 @@ If your server exposes Streamable HTTP, authentication is your responsibility �
 
 Specific to Streamable HTTP transport.
 
-### Session ID generation
+### Legacy session ID generation
+
+MCP 2026-07-28 retired the protocol-level `Mcp-Session-Id` header. Apply this
+section only when supporting older Streamable HTTP revisions that still use
+transport sessions.
 
 - CSPRNG only (`secrets.token_urlsafe(32)` or equivalent), ≥ 128 bits entropy. Never derive from timestamps, counters, hostname, PID, or user data — predictable session IDs were a real 2025 incident class.
 - Tie the session to the authenticated principal — reject if the bearer/origin no longer matches.

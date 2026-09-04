@@ -1,12 +1,21 @@
-# Worked example — Tasks (SEP-1686) wire shape
+# Worked example — Tasks wire shape
 
-> Load when implementing the spec-primitive long-running pattern. **Status today (2026-05):** no tracked client negotiates `tasks` at `initialize` and the major SDKs (`mcp`/FastMCP, `@modelcontextprotocol/sdk-typescript`) do not yet expose first-class registration helpers — wire shapes below may need to be hand-emitted in the capabilities/tool payload. Use the roll-your-own pattern (bottom of this file, also in [tool-design.md §Fallback](../references/tool-design.md#fallback--roll-your-own-async-handle)) as the default; verify SDK + [clients.md cross-client matrix](../references/clients.md#cross-client-capability-matrix) before shipping `taskSupport: required`.
+> Load when implementing the spec-extension long-running pattern. Tasks moved into
+> the formal MCP extensions framework in 2026-07-28, so declaration shape is
+> revision- and SDK-sensitive. Use the roll-your-own pattern (bottom of this file,
+> also in [tool-design.md §Fallback](../references/tool-design.md#fallback--roll-your-own-async-handle))
+> as the default for mixed or unverified clients; verify SDK support and
+> [clients.md cross-client matrix](../references/clients.md#cross-client-capability-matrix)
+> before shipping a Tasks-only flow.
 >
 > Decision context — when to reach for this vs. blocking vs. roll-your-own: [tool-design.md §Long-Running Operations](../references/tool-design.md#long-running-operations).
 
-## 1. Declare the `tasks` capability at `initialize`
+## 1. Declare Tasks support for your target revision
 
-Without this the client will not augment any call:
+In older drafts this was a top-level `tasks` capability during `initialize`.
+In 2026-07-28, Tasks are an opt-in extension and may be exposed through the
+current SDK's extension API. Treat this JSON as illustrative only; verify the
+SDK/runtime contract before shipping:
 
 ```jsonc
 {
@@ -17,7 +26,7 @@ Without this the client will not augment any call:
 }
 ```
 
-## 2. Declare per-tool intent with `execution.taskSupport`
+## 2. Declare per-tool intent when your SDK supports it
 
 ```jsonc
 {
@@ -27,7 +36,11 @@ Without this the client will not augment any call:
 }
 ```
 
-`"optional"` is the only value safe to ship today: clients that don't negotiate `tasks` invoke the tool synchronously; clients that do negotiate it may augment. **Do not set `"required"` until the [clients.md matrix](../references/clients.md#cross-client-capability-matrix) confirms your target client negotiates `tasks` — `"required"` rejects synchronous calls and breaks the tool on every other client.**
+When this field exists in your target revision, `"optional"` is the compatible
+choice: clients without Tasks support invoke the tool synchronously or through
+your roll-your-own fallback; clients with Tasks support may augment. **Do not
+ship a required/spec-only path until the [clients.md matrix](../references/clients.md#cross-client-capability-matrix)
+confirms every target client supports Tasks.**
 
 | Value | Meaning |
 |-------|---------|
@@ -53,7 +66,7 @@ Without this the client will not augment any call:
 
 - The receiver generates the task ID and may shorten the requested `ttl`.
 - Clients poll. `notifications/tasks/status` is optional — requestors must not rely on it.
-- Bind tasks to the session / auth context; use high-entropy IDs.
+- Bind tasks to the authenticated principal or explicit domain handle; use high-entropy IDs.
 
 ## Roll-your-own fallback (use today)
 
@@ -63,4 +76,4 @@ Two ordinary tools, no spec feature:
 2. A separate polling tool (`get_task_status`, `check_job_result`) takes the `id` and returns current state.
 3. Final state returns the actual result or error.
 
-Same invariant: the first tool never blocks; it only enqueues work and returns a handle. The pattern leaks polling cadence into prompt engineering and depends on the agent remembering to call the status tool — switch to the spec primitive above once your target clients support it.
+Same invariant: the first tool never blocks; it only enqueues work and returns a handle. The pattern leaks polling cadence into prompt engineering and depends on the agent remembering to call the status tool — switch to the spec extension above once your target clients support it.

@@ -49,7 +49,7 @@ mark_dialog_for_sync  search_messages    get_sync_status
 - Avoid generic names: `get_data`, `run_query` — useless to the LLM
 - Watch for namespace collisions with the client: `get_me` intercepted by some clients → use `get_my_account`
 
-**Pattern:** `^[a-z0-9_]{1,64}$` (snake_case + underscores for namespacing). The MCP spec character class is wider (mixed case, hyphens, length up to 128) — check the [spec tools page](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) for the exact class current at your target spec date. Real clients (Claude Desktop, Claude Code, Cursor) routinely reject dots even when an older draft allowed them — stick to `[a-z0-9_]` for portability.
+**Pattern:** `^[a-z0-9_]{1,64}$` (snake_case + underscores for namespacing). The MCP spec character class is wider — check the [spec tools page](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) for the exact class current at your target spec date. Real clients have historically been stricter than some spec revisions — stick to `[a-z0-9_]` for portability.
 
 **Namespacing in multi-server environments:** prefix the service — `asana_search`, `jira_issue_get`. Prefix before verb (LLMs scan domain-first when picking between servers).
 
@@ -279,19 +279,19 @@ return a handle and let the client poll.
 |--------------|---------|-------|
 | < 2 s        | Synchronous | Most read tools fall here. No special handling. |
 | 2–20 s       | Synchronous, with a timeout-warning note in the description | Watch the client's tool-call timeout — see [clients.md](clients.md). Some hosts abort at 30 s; some users abort sooner. |
-| 20 s – 2 min | `taskSupport: "optional"` if any target client supports Tasks; else roll-your-own handle | `optional` keeps synchronous fallback working. Roll-your-own = submit tool returns a handle + separate polling tool. |
-| > 2 min      | Roll-your-own handle (no tracked client negotiates `tasks` today). Switch to `taskSupport: "optional"` once your matrix confirms; switch to `"required"` only after every target client negotiates `tasks`. | Synchronous calls will be aborted by client timeouts. `"required"` rejects synchronous calls on clients that don't support Tasks — see [clients.md cross-client matrix](clients.md#cross-client-capability-matrix). |
+| 20 s – 2 min | Tasks if every target client supports the current extension flow; else roll-your-own handle | Roll-your-own = submit tool returns a handle + separate polling tool. |
+| > 2 min      | Roll-your-own handle until your target matrix confirms Tasks support | Synchronous calls will be aborted by client timeouts. A spec-only Tasks path breaks clients that do not support the extension — see [clients.md cross-client matrix](clients.md#cross-client-capability-matrix). |
 
-There are two ways to expose the non-synchronous patterns. **Prefer the spec primitive when the
-client supports it; fall back to the roll-your-own pattern when it doesn't.**
+There are two ways to expose the non-synchronous patterns. **Prefer the spec extension when the
+target client supports it; fall back to the roll-your-own pattern when it doesn't.**
 
-### Spec primitive — Tasks ([SEP-1686](https://modelcontextprotocol.io/community/seps/1686-tasks))
+### Spec extension — Tasks ([SEP-1686](https://modelcontextprotocol.io/community/seps/1686-tasks))
 
-Two declarations: top-level `tasks` capability at `initialize` + per-tool `execution.taskSupport` (`forbidden` default | `optional` | `required`). Status today is owned by [clients.md](clients.md) — check before shipping. Wire shape + server-side invariants: [`examples/long-running-tasks-wire-shape.md`](../examples/long-running-tasks-wire-shape.md).
+Tasks moved into the formal extensions framework in MCP 2026-07-28. Exact declaration and SDK shape may differ across protocol revisions, so treat [clients.md](clients.md) as the owner of support status and verify the target SDK before shipping. Wire shape + server-side invariants: [`examples/long-running-tasks-wire-shape.md`](../examples/long-running-tasks-wire-shape.md).
 
 ### Fallback — roll-your-own async handle
 
-The default today (no tracked client negotiates `tasks`). Submit tool returns immediately with a domain `id` and `status: "working"`; a separate polling tool (`get_task_status`, `check_job_result`) returns current state until terminal. Same invariant as the spec primitive: the submit tool never blocks. Pattern leaks polling cadence into prompt engineering and depends on the agent calling the status tool — switch to the spec primitive once target clients support it. Full recipe: [`examples/long-running-tasks-wire-shape.md` §Roll-your-own](../examples/long-running-tasks-wire-shape.md#roll-your-own-fallback-use-today).
+The default for mixed or unverified clients. Submit tool returns immediately with a domain `id` and `status: "working"`; a separate polling tool (`get_task_status`, `check_job_result`) returns current state until terminal. Same invariant as the spec extension: the submit tool never blocks. Pattern leaks polling cadence into prompt engineering and depends on the agent calling the status tool — switch to the spec extension once target clients support it. Full recipe: [`examples/long-running-tasks-wire-shape.md` §Roll-your-own](../examples/long-running-tasks-wire-shape.md#roll-your-own-fallback-use-today).
 
 ### When blocking is fine
 

@@ -85,7 +85,7 @@
 
 ## 9. Long-Running Operations
 
-- [ ] `[UNIVERSAL]` **No blocking tools > a few seconds** — tools that invoke slow external APIs, file processing, or background sync use the **roll-your-own async handle** (return task ID immediately, separate polling tool) or the Tasks spec primitive once the [clients.md matrix](clients.md#cross-client-capability-matrix) confirms support.
+- [ ] `[UNIVERSAL]` **No blocking tools > a few seconds** — tools that invoke slow external APIs, file processing, or background sync use the **roll-your-own async handle** (return task ID immediately, separate polling tool) or the Tasks extension once the [clients.md matrix](clients.md#cross-client-capability-matrix) confirms support.
 - [ ] `[CONDITIONAL]` **Roll-your-own async handle implemented correctly** — the submit tool never blocks; it only enqueues and returns `{id, status: "working"}`. Wire shape: [examples/long-running-tasks-wire-shape.md](../examples/long-running-tasks-wire-shape.md#roll-your-own-fallback-use-today). *Skip when:* server exposes only Tasks-augmented tools (`taskSupport: "optional"` or `"required"`) and every target client negotiates `tasks`.
 
 ---
@@ -146,7 +146,7 @@
 
 - [ ] `[UNIVERSAL]` **Local server not exposed on public interface** — binds to `127.0.0.1` or Unix socket, or has authentication if network-accessible.
 - [ ] * `[CONDITIONAL]` **`Host` + `Origin` validation for Streamable HTTP** — server rejects requests with invalid `Host` *or* `Origin` (HTTP 403). `Host` is the load-bearing DNS-rebinding defence; `Origin` is defence in depth. *Smell: SDK protection silently bypassed because the server binds to `0.0.0.0` or mutates `host` after construction — see footgun list in [security-threats.md §0](security-threats.md#http-origin--host-validation-dns-rebinding-defence).*
-- [ ] * `[CONDITIONAL]` **Streamable HTTP session IDs are CSPRNG** — ≥ 128 bits entropy, not derived from time/counter/PID. *Smell: session ID from `time.time()`, PID, counter, or `random.random()` instead of `secrets.token_urlsafe`.* → [security-threats.md §4 Session and transport security](security-threats.md#4-session-and-transport-security)
+- [ ] * `[CONDITIONAL]` **Legacy Streamable HTTP session IDs are CSPRNG** — applies only when supporting older revisions with protocol-level session IDs. ≥ 128 bits entropy, not derived from time/counter/PID. *Smell: session ID from `time.time()`, PID, counter, or `random.random()` instead of `secrets.token_urlsafe`.* → [security-threats.md §4 Session and transport security](security-threats.md#4-session-and-transport-security)
 
 ### 14c. Authorization
 

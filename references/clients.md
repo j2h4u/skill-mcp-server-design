@@ -2,6 +2,11 @@
 
 > Load when client limitations affect server design. EMPIRICAL — compatibility notes, not protocol guarantees. Each row is dated; recheck periodically. `⚠️` = partial / needs probe.
 
+> Protocol-sensitive notes refreshed against MCP 2026-07-28 on 2026-09-04. The
+> Claude Desktop and Claude Code rows below are still older empirical snapshots;
+> re-probe the target client before relying on a capability marked absent or
+> unverified.
+
 ---
 
 ## Cross-client capability matrix
@@ -22,7 +27,7 @@
 | `notifications/tools/list_changed` | ⚠️ likely dropped | ✅ |
 | `notifications/message` (logging → model) | ❌ silently dropped | ⚠️ unverified |
 | `notifications/progress` | ❌ no `progressToken` sent | ⚠️ unverified |
-| `tasks` (SEP-1686) | ⚠️ not observed in `initialize` | ⚠️ unverified |
+| `tasks` (SEP-1686) | ⚠️ not observed in this snapshot | ⚠️ unverified |
 | OAuth 2.1 for remote servers | n/a (subprocess client) | ✅ (RFC 9728 + dynamic client registration) |
 | Tool-call timeout knob | ~20s defensive (single observation — see Timeouts below) | `MCP_TOOL_TIMEOUT` env var |
 | Output budget | not published | `MAX_MCP_OUTPUT_TOKENS` env var (see Claude Code docs for current default) |
@@ -76,7 +81,7 @@ In order of reliability:
 |---------|--------|----------------|
 | Tool response (`content`) | ✅ Always | On tool call completion |
 | `isError: true` + error message | ✅ Always | On tool error (including "server busy") |
-| `server.instructions` | ✅ Always | At `initialize` — once per session |
+| `server.instructions` | ✅ Always | Session/discovery metadata; exact lifecycle varies by protocol revision |
 | Tool descriptions | ✅ Always | At `tools/list` — every connection |
 | `notifications/message` | ❌ Dropped | — |
 | `notifications/progress` | ⚠️ Unknown | Only if client sends `progressToken` |
@@ -150,7 +155,7 @@ Capability statuses are in the cross-client matrix above; design implications be
 
 ### Tool Name Constraints
 
-No stricter-than-spec enforcement observed in Claude Code's CHANGELOG. The MCP spec character class for tool names is mixed-case alphanumerics plus underscore and hyphen, up to 128 chars — verify against the [spec tools page](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) at your target spec date, since the exact class has shifted across drafts (dots in particular came and went). The snake_case convention pattern lives in [tool-design.md §Naming](tool-design.md#naming).
+No stricter-than-spec enforcement observed in Claude Code's CHANGELOG. The MCP spec character class is wider than this skill's convention — verify against the [spec tools page](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) at your target spec date, since the exact class has shifted across drafts. The snake_case convention pattern lives in [tool-design.md §Naming](tool-design.md#naming).
 
 ---
 
@@ -166,7 +171,7 @@ No stricter-than-spec enforcement observed in Claude Code's CHANGELOG. The MCP s
 - **Dynamic tool lists work** — use `notifications/tools/list_changed` for servers that add/remove tools at runtime (feature flags, multi-tenant surfaces).
 - **Output token budget is generous but finite** — `MAX_MCP_OUTPUT_TOKENS` env var caps total output (default in the [Claude Code MCP docs](https://code.claude.com/docs/en/mcp); verify per version). For large payloads, use the `anthropic/maxResultSizeChars` namespaced field on the tool definition. Compress or paginate before hitting the limit.
 - **`MCP_TOOL_TIMEOUT` is the right knob for slow tools** — set it server-side in `.mcp.json` env block, not in tool logic.
-- **Sampling: do not use** — no evidence of support, and the primitive is deprecated protocol-wide.
+- **Sampling: avoid for new designs** — no evidence of support in this snapshot, and MCP 2026-07-28 moves old server-initiated flows toward MRTR / `InputRequiredResult`.
 - **`claude mcp serve`** exposes Claude Code itself as an MCP server (stdio) — useful for agent-to-agent tool sharing.
 
 ---

@@ -59,6 +59,6 @@ The agent makes one call; the context window sees one tool name.
 
 ## `server.instructions` — agent orientation block
 
-Returned in the `initialize` response. Agent reads it once at session start; not re-sent on tool calls. Keep it tight: domain authority, named workflows, stable context hints, feedback directive — nothing that belongs in a tool description or response payload.
+Delivered as server metadata and treated by hosts as session-level agent orientation; exact lifecycle varies by protocol revision and gateway. Keep it tight: domain authority, named workflows, stable context hints, feedback directive — nothing that belongs in a tool description or response payload.
 
 Canonical shape + format rules + budget principle live in [agent-ux.md §System Prompt as Configuration Surface](agent-ux.md#system-prompt-as-configuration-surface). Omit `server.instructions` entirely when there is nothing domain-specific to say.

@@ -38,12 +38,12 @@ Do not prefix descriptions with `[primary]` / `[secondary/helper]` — not a val
 ## System Prompt as Configuration Surface
 
 The system prompt (`server.instructions` in MCP) is a first-class knob for shaping
-agent behaviour without adding tools. It's sent at `initialize` (once per session),
-then folded into the host's system prompt for the rest of the conversation — keep it tight.
+agent behaviour without adding tools. Hosts typically fold it into the agent's
+session context rather than re-sending it on every tool call — keep it tight.
 
 **Gateway caveat:** this only holds when the client connects directly to this server or the
 gateway preserves upstream instructions. Aggregators such as Docker MCP Gateway can present
-their own initialize response and omit backend `server.instructions`. Do not put the only copy
+their own server metadata and omit backend `server.instructions`. Do not put the only copy
 of a load-bearing rule here; keep critical tool-selection, safety, and response-contract facts
 recoverable from tool descriptions, schemas, `isError` messages, or structured results.
 
