@@ -1,4 +1,4 @@
-# skill-mcp-server-design
+# MCP Server Design
 
 Design guidance for MCP servers that need to work well when driven by agents.
 
@@ -8,7 +8,8 @@ servers before they become hard to change.
 
 ## Use
 
-Place this directory wherever your agent runtime loads skills from.
+Give your agent this repository URL and ask it to install the skill:
+`https://github.com/j2h4u/skill-mcp-server-design`.
 
 ## Contents
 
@@ -19,4 +20,6 @@ concrete wire shapes out of the main skill.
 
 ## History
 
-Originally developed inside `oh-my-claude-plugins`; now maintained separately.
+Originally developed inside
+[`oh-my-claude-plugins`](https://github.com/j2h4u/oh-my-claude-plugins);
+now maintained separately.
