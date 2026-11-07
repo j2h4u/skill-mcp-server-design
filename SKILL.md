@@ -1,5 +1,6 @@
 ---
 name: mcp-server-design
+license: LICENSE.md
 description: >-
   This skill should be used when the user asks to "design an MCP server", "audit an MCP server",
   "review MCP tools", "add MCP tool", "improve tool descriptions", "design tool surface",
